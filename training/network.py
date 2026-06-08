@@ -69,6 +69,14 @@ class FullyConnectedNetwork(nn.Module):
         print(f"Test Result:\n -> accuracy: {100*correct}\n -> average loss: {test_loss}")
         print("--- test loop done ---")
 
+    def export_params(self, path: str):
+        """Saves model for inference using state_dict"""
+        torch.save(self.state_dict(), path)
+
+    def load_from_params(self, path: str):
+        """Loads model for inference from given params/state_dict path"""
+        self.load_state_dict(torch.load(path, weights_only=True))
+        self.eval()
 
     def _get_layer_list(self, layers: list):
         # Initial layer

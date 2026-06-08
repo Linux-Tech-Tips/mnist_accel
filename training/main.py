@@ -8,8 +8,8 @@ from torchvision.transforms import v2
 
 from network import FullyConnectedNetwork
 
-def train_model():
-    # train model on MNIST dataset
+def train_model(filename: str = None):
+    # Train model on MNIST digit dataset
     training_data = datasets.MNIST(
         root="dataset_data",
         train=True,
@@ -35,7 +35,7 @@ def train_model():
     loss_fn = nn.CrossEntropyLoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate)
 
-    # train model
+    # Train model
     for t in range(epochs):
         print(f"===== Epoch {t+1} =====")
         model.train_loop(train_dataloader, loss_fn, optimizer, 100)
@@ -43,15 +43,22 @@ def train_model():
         print("")
     print("===== Epochs Done =====")
 
-    # TODO Add model parameter saving
+    # Save model if filename supplied
+    if filename is not None:
+        model.export_params(filename)
 
-def run_model():
+
+def run_model(filename: str):
     # run pre-trained MNIST dataset model
-    pass
+    model = FullyConnectedNetwork([28*28, 512, 256, 10])
+    model.load_from_params(filename)
+
+    # TODO Add input loading and inference
 
 
-# TODO Here, add a reasonable main, switching between train and run mode, export/import weights
+# TODO Here, add a main to switch between train and run mode, export/import weights etc.
 
 if __name__ == "__main__":
-    train_model()
+    train_model("model.pt")
+    #run_model("model.pt")
 
