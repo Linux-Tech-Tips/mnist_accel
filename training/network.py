@@ -84,6 +84,7 @@ class FullyConnectedNetwork(nn.Module):
         # Append ReLU for previous layer and next layer to leave final (output) layer without ReLU
         for i in range(1, len(layers) - 1):
             result.append((f"relu{i}", nn.ReLU()))
+            result.append((f"dropout{i}", nn.Dropout(0.3)))
             result.append((f"fc{i}", nn.Linear(layers[i], layers[i+1])))
         return result
 
