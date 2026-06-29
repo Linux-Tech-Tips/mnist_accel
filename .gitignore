@@ -1,5 +1,6 @@
 venv
 __pycache__
 dataset_data
-*.pt
+training/*.pt
+training/*.png
 *.swp
