@@ -7,8 +7,8 @@ This part of the project consists of PyTorch Python code to train a multi-layer 
 ### Layers:
 
 - **Input**: 784 neurons, flattened 28x28 pixel image
-- **Hidden 1**: 256 neurons, ReLU activation
-- **Hidden 2**: 128 neurons, ReLU activation
+- **Hidden 1**: 512 neurons, ReLU activation
+- **Hidden 2**: 256 neurons, ReLU activation
 - **Output**: 10 neurons representing digit 0-9, ArgMax on inference for simplicity
 
 The ReLU function is used as it both avoids the vanishing gradient problem,
@@ -18,5 +18,5 @@ ReLU also has a good track record as a general-purpose activation function, so i
 
 ### Optimiser:
 
-- Stochastic Gradient Descent (SGD) for simplicity
+- ADAM Optimiser thanks to good performance, with a configurable learning rate of $10^-4$ by default.
 
