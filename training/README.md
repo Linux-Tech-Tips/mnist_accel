@@ -33,7 +33,7 @@ The format, also documented in a comment in the `dump_bytes.py` script itself, i
 - stream of X datagrams, following format:
   - 4 bytes ....... integer tensor dimension H (typically tensor height)
   - 4 bytes ....... integer tensor dimension W (typically tensor width)
-  - H*W*4 bytes ... series of 32-bit floating point numbers (IEEE 754), tensor data in row-major format
+  - H\*W\*4 bytes ... series of 32-bit floating point numbers (IEEE 754), tensor data in row-major format
   - 1 byte ........ separator 0x00 signalling end of the datagram, sanity check that previous data loaded correctly
 
 Given a model with layers containing the name 'weight' and 'bias', the script saves the weights and biases in alternating order,
