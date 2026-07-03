@@ -2,6 +2,7 @@
 
 import sys
 import struct
+import time
 from dataclasses import dataclass
 from collections.abc import Callable
 
@@ -96,3 +97,55 @@ def run_net_on_image(net: Network, path: str) -> int:
     image = image_loader.png_to_numpy(path)
     return net.run(image.flatten())
     
+def run_perf_test(network_path: str, image_paths: list, repeat: int) -> tuple[float, float]:
+    """Runs 'repeat' tests executing the network given by network_path on all images in image_path sequentially
+       Returns a tuple of (<model load time>, <total test time>) both floating point in seconds"""
+
+    # Model loading
+    model_load_start = time.time()
+    net = Network.load_from_dat_file(network_path)
+    model_load_end = time.time()
+
+    # Image loading
+    images = [image_loader.png_to_numpy(path).flatten() for path in image_paths]
+
+    # Model inference benchmark
+    run_start = time.time()
+    for i in range(repeat):
+        for image in images:
+            net.run(image)
+    run_end = time.time()
+
+    return (model_load_end - model_load_start, run_end - run_start)
+
+
+# Runtime
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print(f"{sys.argv[0]} needs first argument 'run' or 'bench'")
+        print(f" - run:   {sys.argv[0]} run network_file.dat image_file.png")
+        print(f" - bench: {sys.argv[0]} bench network_file.dat repeats image_files.png ...")
+        raise SystemExit(1)
+
+    if sys.argv[1].lower() == "run":
+        if len(sys.argv) < 4:
+            print("'run' needs 2 additional arguments")
+            raise SystemExit(1)
+        net = Network.load_from_dat_file(sys.argv[2])
+        result = run_net_on_image(net, sys.argv[3])
+        print(f"Result: {result}")
+
+    elif sys.argv[1].lower() == "bench":
+        if len(sys.argv) < 5:
+            print("'bench' needs at least 3 additional arguments")
+            raise SystemExit(1)
+        model_path = sys.argv[2]
+        repeats = int(sys.argv[3])
+        image_paths = [sys.argv[i] for i in range(4, len(sys.argv))]
+        load_time, run_time = run_perf_test(model_path, image_paths, repeats)
+        load_time *= 1000
+        run_time *= 1000
+        run_time_per_img = run_time / (len(image_paths) * repeats)
+        print(f"Result:\nTest repeats: {repeats}; Image count: {len(image_paths)}; Model load time: {load_time} ms \
+                \nInference time total: {run_time} ms; Inference time average: {run_time_per_img} ms")
+
