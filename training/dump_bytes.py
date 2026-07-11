@@ -8,7 +8,7 @@
 # H*W*4 numbers    - 32-bit floats in the matrix one by one in row-major format
 # 1 byte separator - 0x00
 #
-# If a 2D matrix is followed by M>=1 N==1, it's interpreted as weights (the matrix) followed by a corresponding bias
+# If a 2D matrix is followed by H>=1 W==1, it's interpreted as weights (the matrix) followed by a corresponding bias
 
 import sys
 import struct
