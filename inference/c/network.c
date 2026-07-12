@@ -115,6 +115,6 @@ void network_run(network_t * network, float * in_buffer, size_t in_buffer_len, f
 
     assert(out_len == out_buffer_len);
     for(size_t i = 0; i < out_buffer_len; ++i) {
-	out_buffer[i] == in_buffer[i];
+	out_buffer[i] = in_buffer[i];
     }
 }

@@ -3,8 +3,11 @@
 #include "network.h"
 
 #define IMAGE_SIZE 28*28
+#define OUTPUT_SIZE 10
 
 void load_test_img(float image [IMAGE_SIZE], FILE * img_file);
+
+uint8_t argmax(float * values, size_t len);
 
 int main(int argc, char * argv[]) {
     assert(argc > 2);
@@ -26,6 +29,11 @@ int main(int argc, char * argv[]) {
 
     puts("image loading complete!");
 
+    float out [OUTPUT_SIZE];
+    network_run(&net, image, IMAGE_SIZE, out, OUTPUT_SIZE);
+    uint8_t result = argmax(out, OUTPUT_SIZE);
+    printf("output: %u\n", result);
+
     network_free(&net);
 
     return 0;
@@ -38,4 +46,17 @@ void load_test_img(float image [IMAGE_SIZE], FILE * img_file) {
 
     num_read = fread(image, sizeof(float), IMAGE_SIZE, img_file);
     assert(num_read == IMAGE_SIZE);
+}
+
+uint8_t argmax(float * values, size_t len) {
+    assert(len > 0);
+    float max = values[0];
+    uint8_t idx = 0;
+    for(size_t i = 1; i < len; ++i) {
+	if(values[i] > max) {
+	    max = values[i];
+	    idx = i;
+	}
+    }
+    return idx;
 }
