@@ -3,16 +3,36 @@
 /** Arm NEON SIMD matrix-vector multiplication implementation
  *
  * - Packing approach:
- *   - for optimal contiguous memory access
+ *   - for optimal contiguous (spacial locality cache-friendly) memory access
  *   - block column-major format
  *   - block of height K from top of first column, then second, until end of params
  *     followed by another block of height K from top offset by K
  *   - K is the row size, where R is the SIMD register length and K % R == 0 and K/R defines how much to unroll the matmul
+ *
+ * - Matrix-Vector Multiplication approach:
+ *   - utilising memory pre-packed layout for efficient contiguous loads
+ *   - parallel weight*input calculation using Arm64 VMLA vector-multiply by scalar instruction
+ *   - loop logic:
+ *     - iterate over weight height in steps of K
+ *     - mem load next K elements from params into out registers in steps of R (Q steps unrolled) - bias
+ *     - iterate over weight width, load next K elements from params - next K weights
+ *     - VMLA vector-multiply by scalar - current K weights by current width index input, accumulate into K out registers
+ *     - write current K out registers into output buffer
+ *
+ * - ReLU Actiation approach:
+ *   - using formula `ReLU(x) = (abs(x) + x) * 0.5f`
+ *   - iterating over in-buffer length in steps of K:
+ *     - load K elements into Q in-registers and Q out-registers (2Q unrolled steps)
+ *     - VABS the Q in-registers in-place
+ *     - VADD in-registers and out-registers into out-registers
+ *     - VMUL by scalar constant 0.5f
+ *     - save K elements from Q out-registers into next K elements in out-buffer
+ *
  */
 
 /** Number of F32 elements in single register */
 #define R 4
-/** Number of usable Q (quad-word) registers for 1 vector input and 1 vector output VMLA (scalar) op */
+/** Number of used Q (quad-word) registers for 1 vector input and 1 vector output VMLA (scalar) op */
 #define Q 4
 /** Step in which to go down the weight matrix */
 #define K (R*Q)
@@ -59,18 +79,6 @@ void imatmul_kernel_pack(imatmul_params_t * params) {
 }
 
 void imatmul_kernel_run(imatmul_params_t * params, float * in_buffer, size_t in_buffer_len, float * out_buffer, size_t out_buffer_len) {
-    // TODO Matmul Kernel Run using ACLE on packed data
-
-    // TODO What do here:
-    //  -> set up Q NEON Q vector registers - out
-    //  -> set up Q NEON Q vector registers - in
-    //  -> iterate over params->weight_h (check it's same as out_buffer_len) in steps of K
-    //  -> for each iteration:
-    //    -> mem load K elements from params into out registers in steps of R (Q steps unrolled)
-    //    -> iterate over params->weight_w, for each:
-    //      -> mem load K elements from params into in registers in steps of R (Q steps unrolled)
-    //      -> VMLA (scalar) in:in_r in_scalar:weight_w_offset out:out_r (Q times unrolled)
-    //    -> mem write K elements from out registers into out_buffer (Q steps unrolled)
 
     assert(Q == 4); // Unwrapped for Q == 4
 
@@ -144,14 +152,6 @@ void imatmul_kernel_run(imatmul_params_t * params, float * in_buffer, size_t in_
 }
 
 void imatmul_activation_relu(float * in_buffer, size_t in_buffer_len, float * out_buffer, size_t out_buffer_len) {
-    // TODO What here:
-    // ReLU abs, add then vector multiply by scalar 0.5f
-    // -> iterate over in_buffer_len in steps of K
-    //   -> load K elements into Q in-registers and Q out-registers
-    //   -> VABS on Q in-registers in-place
-    //   -> VADD in-registers and out-registers into out-registers
-    //   -> VMUL by scalar constant 0.5f out-registers
-    //   -> save K elements from Q out-registers into out_buffer
 
     float32x4_t out1;
     float32x4_t out2;
