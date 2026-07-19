@@ -6,3 +6,5 @@ training/*.png
 training/*.dat
 *.swp
 *.elf
+build
+build_*

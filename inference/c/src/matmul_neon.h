@@ -3,7 +3,9 @@
 
 #include "imatmul.h"
 
+#include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include <arm_acle.h>
 #include <arm_neon.h>

@@ -1,5 +1,7 @@
 # File running simple numpy inference with a given data file of tensors and png image path
 
+from __future__ import annotations
+
 import sys
 import struct
 import time
@@ -20,7 +22,7 @@ class NetworkLayer:
     """Single network layer represented as a 2D NumPy Matrix for the weights, 1D NumPy array for bias and an activation function"""
     weights: np.array
     bias: np.array
-    activation: Callable[np.array, np.array]
+    activation: Callable[[np.array], np.array]
 
     def __post_init__(self):
         """Standard constraints for weights and bias in any layer"""
