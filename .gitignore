@@ -5,3 +5,4 @@ training/*.pt
 training/*.png
 training/*.dat
 *.swp
+*.elf
