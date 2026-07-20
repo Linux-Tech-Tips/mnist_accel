@@ -82,15 +82,17 @@ int main(int argc, char * argv[]) {
 	    fclose(img_file);
 	}
 
-	uint64_t run_start = get_time_us();
+        uint64_t run_total = 0;
 	float out [OUTPUT_SIZE];
 	for(size_t i = 0; i < repeats; ++i) {
-	    for(size_t img_idx; img_idx < images_len; ++img_idx) {
+	    for(size_t img_idx = 0; img_idx < images_len; ++img_idx) {
+	        uint64_t run_start = get_time_us();
 		network_run(&net, images[img_idx], IMAGE_SIZE, out, OUTPUT_SIZE);
 		argmax(out, OUTPUT_SIZE);
+	        uint64_t run_end = get_time_us();
+                run_total += (run_end - run_start);
 	    }
 	}
-	uint64_t run_end = get_time_us();
 
 	for(size_t i = 0; i < images_len; ++i) {
 	    free(images[i]);
@@ -98,11 +100,11 @@ int main(int argc, char * argv[]) {
 	free(images);
 
 	float model_load_time_ms = (float)(model_load_end - model_load_start) / 1000.0f;
-	float run_time_total_ms = (float)(run_end - run_start) / 1000.0f;
+	float run_time_total_ms = (float)(run_total) / 1000.0f;
 	float run_time_avg_ms = run_time_total_ms / (float)(repeats * images_len);
 
 	printf("Result:\nTest repeats: %u; Image count: %u; Model load time: %.5f ms\n"
-	       "Inference time total: %.5f ms; Inference time average: %.8f ms\n",
+	       "Inference time total: %.9f ms; Inference time average: %.9f ms\n",
 		repeats, images_len, model_load_time_ms, run_time_total_ms, run_time_avg_ms);
 
     } else {

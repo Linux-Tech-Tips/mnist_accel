@@ -112,13 +112,15 @@ def run_perf_test(network_path: str, image_paths: list, repeat: int) -> tuple[fl
     images = [image_loader.png_to_numpy(path).flatten() for path in image_paths]
 
     # Model inference benchmark
-    run_start = time.time()
+    run_total = 0
     for i in range(repeat):
         for image in images:
+            run_start = time.time()
             net.run(image)
-    run_end = time.time()
+            run_end = time.time()
+            run_total += (run_end - run_start)
 
-    return (model_load_end - model_load_start, run_end - run_start)
+    return (model_load_end - model_load_start, run_total)
 
 
 # Runtime
