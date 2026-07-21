@@ -5,6 +5,10 @@
 
 #include "network.h"
 
+#ifdef INSTRUMENT_MATMUL
+#include "perf_inst.h"
+#endif
+
 #define IMAGE_SIZE 28*28
 #define OUTPUT_SIZE 10
 
@@ -30,6 +34,10 @@ int main(int argc, char * argv[]) {
     const char * network_name = argv[2];
     FILE * network_file = fopen(network_name, "r");
     network_t net = {0};
+
+#ifdef INSTRUMENT_MATMUL
+    perf_init_readers();
+#endif
 
     if(strcmp(argv[1], "run") == 0) {
         if(argc < 4) {
@@ -112,6 +120,11 @@ int main(int argc, char * argv[]) {
         fclose(network_file);
         return 1;
     }
+
+#ifdef INSTRUMENT_MATMUL
+    perf_close_readers();
+    perf_print_summary();
+#endif
 
     fclose(network_file);
     network_free(&net);
