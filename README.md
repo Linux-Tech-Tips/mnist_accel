@@ -71,6 +71,18 @@ This means that when the program next loads data into registers, rather than fro
 The kernel itself makes efficient use of specialised SIMD registers and instructions, offered by the CPU's advanced SIMD extension known as Arm Neon.
 Using SIMD, the kernel loads a column segment each iteration, multiplies it by the corresponding input activation, and accumulates into output registers,
 using the VMLA instruction (Vector Multiply Accumulate).
+The output registers are initially populated with the weights, which eliminates the need for both register zero-initialisation and an additional vector add instruction after.
+
+Mathematically, the specific approach to matrix-vector multiplication can be represented as
+
+```math
+\mathbf{o_k} = \mathbf{B_k} + \sum_{j=0}^{N} i_j \mathbf{W_kj}
+```
+
+given input buffer $\mathbf{i}$ with the j-th element $i_j$, output buffer $\mathbf{o}$ with a k-long segment $\mathbf{o_k}$,
+the bias buffer $\mathbf{B}$ with a k-long segment $\mathbf{B_k}$, as well as $N$ the width of the weight matrix $\mathbf{W}$,
+with $\mathbf{W_kj}$ representing a k-long column segment of the j-th column of $\mathbf{W}$.
+Iterated in steps of $k$ over the weight matrix height, this computes the layer's full output buffer.
 
 By taking a column segment at a time and iterating horizontally over the weight matrix in a larger row (height is the size of the column segment),
 we can parallelise over each output activation, calculating multiple full outputs each outer loop iteration, and loading each weight only once.
